@@ -1,0 +1,17 @@
+# Ignorar caches e checkpoints do Jupyter e Python
+__pycache__/
+.ipynb_checkpoints/
+appB_checkpoints/
+
+# Ignorar pastas de dados e backups
+Backup Arquivos Loja/
+Bases de Dados/
+
+# Ignorar arquivos de log que a automação possa gerar
+*.log
+*.csv
+*.xlsx
+
+# Ignorar arquivos de ambiente com senhas/tokens
+*.env
+.env
