@@ -138,10 +138,56 @@ for loja in dicionario_lojas:
     <p>Segue em anexo a planilha com todos os dados para mais detalhes.</p>
 
     <p>Qualquer dúvida estou à disposição.</p>
-    <p>Att., Lira</p>
+    <p>Att., Nícolas</p>
     '''
 
     attachment = pathlib.Path.cwd() / caminho_backup / loja / f'{dia_indicador.month}_{dia_indicador.day}_{loja}.xlsx'
     mail.Attachments.Add(str(attachment))
     
     mail.Send()
+
+faturamento_lojas = vendas.groupby('Loja')[['Valor Final']].sum()
+faturamento_lojas_ano = faturamento_lojas.sort_values(by='Valor Final', ascending=False)
+display(faturamento_lojas_ano)
+
+nome_arquivo = '{}_{}_Ranking Anual.xlsx'.format(dia_indicador.month, dia_indicador.day)
+faturamento_lojas_ano.to_excel(r'Backup Arquivos Lojas\{}'.format(nome_arquivo))
+
+vendas_dia = vendas.loc[vendas['Data']==dia_indicador, :]
+faturamento_lojas_dia = vendas_dia.groupby('Loja')[['Valor Final']].sum()
+faturamento_lojas_dia = faturamento_lojas_dia.sort_values(by='Valor Final', ascending=False)
+display(faturamento_lojas_dia)
+
+nome_arquivo = '{}_{}_Ranking Dia.xlsx'.format(dia_indicador.month, dia_indicador.day)
+faturamento_lojas_dia.to_excel(r'Backup Arquivos Lojas\{}'.format(nome_arquivo))
+
+outlook = win32.Dispatch('outlook.application')
+
+mail = outlook.CreateItem(0)
+mail.To = emails.loc[emails['Loja']=='Diretoria', 'E-mail'].values[0]
+mail.Subject = f'Ranking Dia {dia_indicador.day}/{dia_indicador.month}'
+
+mail.Body = f'''
+Prezados, bom dia
+
+Melhor loja do Dia em Faturamento: Loja {faturamento_lojas_dia.index[0]} com Faturamento R${faturamento_lojas_dia.iloc[0, 0]:.2f}
+Pior loja do Dia em Faturamento: Loja {faturamento_lojas_dia.index[-1]} com Faturamento R${faturamento_lojas_dia.iloc[-1, 0]:.2f}
+
+Melhor loja do Ano em Faturamento: Loja {faturamento_lojas_ano.index[0]} com Faturamento R${faturamento_lojas_ano.iloc[0, 0]:.2f}
+Pior loja do Ano em Faturamento: Loja {faturamento_lojas_ano.index[-1]} com Faturamento R${faturamento_lojas_ano.iloc[-1, 0]:.2f}
+
+Segue em anexo os rankings do ano e do dia de todas as lojas.
+
+Qualquer dúvida estou à disposição.
+
+Att.,
+Nícolas
+'''
+
+attachment = pathlib.Path.cwd() / caminho_backup / f'{dia_indicador.month}_{dia_indicador.day}_Ranking Anual.xlsx'
+mail.Attachments.Add(str(attachment))
+
+attachment = pathlib.Path.cwd() / caminho_backup / f'{dia_indicador.month}_{dia_indicador.day}_Ranking Dia.xlsx'
+mail.Attachments.Add(str(attachment))
+
+mail.Send()
